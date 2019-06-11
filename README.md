@@ -1,3 +1,5 @@
+This repo was forked to fix draggable row offset issue
+
 # react-native-sortable-listview
 Drag drop capable wrapper of ListView for React Native. Allows for dragging and dropping of rows with automatic scrolling while dragging.
 
