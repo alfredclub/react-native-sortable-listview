@@ -2,12 +2,12 @@ import React from 'react'
 import {
   View,
   Animated,
+  ListView,
   Dimensions,
   PanResponder,
   LayoutAnimation,
   InteractionManager,
 } from 'react-native'
-import ListView from 'deprecated-react-native-listview'
 
 const HEIGHT = Dimensions.get('window').height
 
@@ -44,9 +44,10 @@ class Row extends React.Component {
   componentDidUpdate(props) {
     // Take a shallow copy of the active data. So we can do manual comparisons of rows if needed.
     if (props.rowHasChanged) {
-      this._data = typeof props.rowData.data === 'object'
-        ? Object.assign({}, props.rowData.data)
-        : props.rowData.data
+      this._data =
+        typeof props.rowData.data === 'object'
+          ? Object.assign({}, props.rowData.data)
+          : props.rowData.data
     }
   }
 
@@ -103,7 +104,6 @@ class SortRow extends React.Component {
   constructor(props) {
     super(props)
     const layout = props.list.state.active.layout
-    const wrapperLayout = props.list.wrapperLayout
 
     this.state = {
       style: {
@@ -114,12 +114,13 @@ class SortRow extends React.Component {
         height: layout.frameHeight,
         overflow: 'hidden',
         backgroundColor: 'transparent',
-        marginTop: layout.pageY - wrapperLayout.pageY, // Account for top bar spacing
       },
     }
   }
 
   render() {
+    const layout = this.props.list.state.active.layout
+    const wrapperLayout = this.props.list.wrapperLayout
     return (
       <Animated.View
         ref="view"
@@ -127,6 +128,9 @@ class SortRow extends React.Component {
           this.state.style,
           this.props.sortRowStyle,
           this.props.list.state.pan.getLayout(),
+          {
+            marginTop: layout.pageY - wrapperLayout.pageY, // Account for top bar spacing
+          }
         ]}
       >
         {this.props.renderRow(
@@ -148,7 +152,7 @@ class SortableListView extends React.Component {
     const currentPanValue = { x: 0, y: 0 }
 
     this.state = {
-      ds: new (props.ListViewComponent || ListView).DataSource({
+      ds: new ListView.DataSource({
         rowHasChanged: (r1, r2) => {
           if (props.rowHasChanged) return props.rowHasChanged(r1, r2)
           return false
@@ -210,9 +214,10 @@ class SortableListView extends React.Component {
         }
         const itemHeight = this.state.active.layout.frameHeight
         const fromIndex = this.order.indexOf(this.state.active.rowData.index)
-        let toIndex = this.state.hovering === false
-          ? fromIndex
-          : Number(this.state.hovering)
+        let toIndex =
+          this.state.hovering === false
+            ? fromIndex
+            : Number(this.state.hovering)
         const up = toIndex > fromIndex
         if (up) {
           toIndex--
@@ -229,7 +234,7 @@ class SortableListView extends React.Component {
         props.onRowMoved && props.onRowMoved(args)
         if (props._legacySupport) {
           // rely on parent data changes to set state changes
-          // LayoutAnimation && LayoutAnimation.easeInEaseOut()
+          // LayoutAnimation.easeInEaseOut()
           this.state.active = false
           this.state.hovering = false
         } else {
@@ -338,10 +343,7 @@ class SortableListView extends React.Component {
       }
       if (newScrollValue !== null && !this.props.limitScrolling) {
         this.scrollValue = newScrollValue
-        this.scrollTo({
-          y: this.scrollValue,
-          animated: !this.props.disableAnimatedScrolling,
-        })
+        this.scrollTo({ y: this.scrollValue, animated: !this.props.disableAnimatedScrolling })
       }
       this.moved && this.checkTargetElement()
       requestAnimationFrame(this.scrollAnimation)
@@ -375,8 +377,7 @@ class SortableListView extends React.Component {
     if (!isLast) i--
 
     if (String(i) !== this.state.hovering && i >= 0) {
-      // LayoutAnimation is not supported in react-native-web
-      LayoutAnimation && LayoutAnimation.easeInEaseOut()
+      LayoutAnimation.easeInEaseOut()
       this._previouslyHovering = this.state.hovering
       this.__activeY = this.panY
       this.setState({
@@ -387,9 +388,9 @@ class SortableListView extends React.Component {
 
   handleRowActive = row => {
     if (this.props.disableSorting) return
+    this.measureWrapper();
     this.state.pan.setValue({ x: 0, y: 0 })
-    // LayoutAnimation is not supported in react-native-web
-    LayoutAnimation && LayoutAnimation.easeInEaseOut()
+    LayoutAnimation.easeInEaseOut()
     this.moveY = row.layout.pageY + row.layout.frameHeight / 2
     this.setState(
       {
@@ -506,12 +507,12 @@ class SortableListView extends React.Component {
   }
 
   scrollTo = (...args) => {
-    if (!this.refs.list) return
+    if (!this.refs.list) return;
     this.refs.list.scrollTo(...args)
   }
 
   getScrollResponder = () => {
-    if (!this.refs.list) return
+    if (!this.refs.list) return;
     this.refs.list.getScrollResponder()
   }
 }
